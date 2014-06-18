@@ -74,6 +74,17 @@ module JasmineRails
       each_dir css_dir.to_s, &block
     end
 
+    def boot_files
+      files = []
+      if jasmine2?
+        files += Jasmine::Core.boot_files
+      else
+        files << "jasmine-boot.js"
+      end
+      files += jasmine_config["boot_files"] if jasmine_config.has_key? "boot_files"
+      files
+    end
+
     # clear out cached jasmine config file
     # it would be nice to automatically flush when the jasmine.yml file changes instead
     # of having this programatic API
@@ -125,13 +136,15 @@ module JasmineRails
       files || []
     end
 
-  private
-
     def initialize_jasmine_config_if_absent(path)
       return if File.exist?(path)
       Rails.logger.warn("Initializing jasmine.yml configuration")
       FileUtils.mkdir_p(File.dirname(path))
       FileUtils.cp(File.join(File.dirname(__FILE__), 'generators', 'jasmine_rails', 'templates', 'jasmine.yml'), path)
+    end
+
+    def jasmine2?
+      Jasmine::Core.respond_to?(:boot_files)
     end
   end
 end
